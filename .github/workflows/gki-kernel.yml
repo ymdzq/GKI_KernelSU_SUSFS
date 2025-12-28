@@ -62,6 +62,7 @@ on:
         type: string
 jobs:
   build-kernel-kernelsu-susfs:
+    name: Build Kernel (${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}) [${{ inputs.kernelsu_variant }}]
     runs-on: ubuntu-latest
     env:
       CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
