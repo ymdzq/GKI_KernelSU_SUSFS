@@ -60,6 +60,7 @@ on:
         required: true
         type: boolean
         default: false
+
 jobs:
   get_manager:
     uses: ./.github/workflows/get-manager.yml
@@ -90,8 +91,8 @@ jobs:
         - get_manager
         - build-kernel-a12-5-10
     env:
-      REPO_OWNER: zzh20188
-      REPO_NAME: GKI_KernelSU_SUSFS
+      REPO_OWNER: ${{ github.repository_owner }}
+      REPO_NAME: ${{ github.event.repository.name }}
       SUS_VERSION: ''
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       RELEASE_NAME: "GKI内核: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}(${{ needs.get_manager.outputs.ksuVer }})  & SUSFS ${{ needs.get_manager.outputs.susVer }}"
@@ -123,7 +124,7 @@ jobs:
           if [[ "${{ inputs.kernelsu_variant }}" == "Official" || "${{ inputs.kernelsu_variant }}" == "MKSU" ]]; then
             BRANCH="main"
           elif [[ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]]; then
-            BRANCH="main"
+            BRANCH="builtin"
           elif [[ "${{ inputs.kernelsu_variant }}" == "Next" ]]; then
             BRANCH="dev"
           else
@@ -207,7 +208,7 @@ jobs:
             fi
           done
 
-      - name: 将提交哈希值和链接添加到 `RELEASE_NOTES` 中，并将 KernelSU-Next 引用添加到 `RELEASE_NOTES` 中。
+      - name: 完善发布说明中的提交信息
         run: |
           if [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
             echo "This is the Official variant"
@@ -241,7 +242,7 @@ jobs:
             echo "Unknown variant"
           fi
           
-      - name: 将提交哈希值和链接添加到 `RELEASE_NOTES` 中，并将 KernelSU-Next 引用添加到 `RELEASE_NOTES` 中。
+      - name: 将提交哈希值和链接添加到 `RELEASE_NOTES` 中
         run: |
           echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
           echo "$RELEASE_NOTES" >> $GITHUB_ENV
@@ -296,14 +297,13 @@ jobs:
             git push --tags
 
       # 下载 A12 的附件（仅当 A12 生成成功或输入为 true 或为空时）
-      - name: Download Artifacts
+      - name: 下载构建产物
         uses: actions/download-artifact@v4
         with:
           path: ./downloaded-artifacts
-          
 
       # 如果 make_release 为 true，则创建 GitHub 发布并上传文件
-      - name: Create GitHub Release
+      - name: 创建GitHub Release
         uses: actions/create-release@v1
         with:
           tag_name: ${{ env.NEW_TAG }}  # Use the generated tag for the release
@@ -311,6 +311,7 @@ jobs:
           release_name: ${{ env.RELEASE_NAME }} # Pass the RELEASE_NAME to the action
           body: ${{ env.RELEASE_NOTES }}  # Pass the RELEASE_NOTES to the action
 
+      # 上传KSU管理器和SUS模块
       - name: 上传KSU管理器 & SUS模块
         continue-on-error: true
         run: |
@@ -318,6 +319,7 @@ jobs:
             gh release upload ${{ env.NEW_TAG }} "./downloaded-artifacts/*Manager*/*"
             gh release upload ${{ env.NEW_TAG }} "./downloaded-artifacts/susfs-*/*"
 
+      # 上传内核产物
       - name: 动态上传发布资产
         run: |
           for file in ./downloaded-artifacts/*_kernel-*/*; do
@@ -332,7 +334,7 @@ jobs:
           done
 
       # Display Files Uploaded
-      - name: Display Files Uploaded
+      - name: 显示已上传文件
         run: |
           echo "GitHub release created with the following files:"
           ls ./downloaded-artifacts/**/*
