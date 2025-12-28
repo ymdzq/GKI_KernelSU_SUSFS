@@ -432,9 +432,8 @@ jobs:
             # patch -p1 --fuzz=3 < mksu_core_hook.c.patch
 
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
-            echo "为 SukiSU 应用 SUSFS 补丁..."
+            echo "无需为 SukiSU 应用 SUSFS 补丁..."
             cd ./KernelSU
-            echo "应用 SukiSU 专用的 SUSFS 补丁..."
           else
             echo "错误：未识别的 KernelSU 变体"
             exit 1
@@ -843,7 +842,7 @@ jobs:
           mv oImage Image
 
 
-      - name: 创建Bootimgs文件夹并复制镜像
+      - name: 创建Bootimgs文件夹并复制镜像（安卓12和安卓13）
         if: ${{ inputs.android_version == 'android12' || inputs.android_version == 'android13' }}
         run: |
           echo "更改为配置目录: $CONFIG..."
@@ -858,7 +857,7 @@ jobs:
           # Create gzip of the Image file
           gzip -n -k -f -9 ./Image > ./Image.gz
 
-      - name: 创建Bootimgs文件夹并复制镜像
+      - name: 创建Bootimgs文件夹并复制镜像（安卓14和安卓15）
         if: ${{ inputs.android_version == 'android14' || inputs.android_version == 'android15' }}
         run: |
           echo "更改为配置目录: $CONFIG..."
@@ -887,7 +886,7 @@ jobs:
             zip -r "../$ZIP_NAME" ./*    
           fi
 
-      - name: 运行boot镜像 ${{ inputs.android_version }} 编译脚本
+      - name: 运行boot镜像 安卓12编译脚本
         if: ${{ inputs.android_version == 'android12' }}
         run: |
           echo "更改为配置目录: $CONFIG..."
@@ -937,7 +936,7 @@ jobs:
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
           cp ./boot-lz4.img ../${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-boot-lz4.img
 
-      - name: 运行boot镜像 ${{ inputs.android_version }} 编译脚本
+      - name: 运行boot镜像 安卓13-15编译脚本
         if: ${{ inputs.android_version == 'android13' || inputs.android_version == 'android14' || inputs.android_version == 'android15' }}
         run: |
           cd bootimgs
