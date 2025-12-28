@@ -293,6 +293,7 @@ jobs:
                 "Official" | "MKSU") echo "BRANCH=-s main" >> $GITHUB_ENV ;;
                 "Next")              echo "BRANCH=-s dev" >> $GITHUB_ENV ;;
                 "SukiSU")           echo "BRANCH=-s builtin" >> $GITHUB_ENV ;;
+                "RKSU")           echo "BRANCH=-s susfs-rksu-master" >> $GITHUB_ENV ;;
                 *) 
                   echo "错误：未定义开发分支的变体 '$variant_input'" >&2
                   exit 1
@@ -308,6 +309,9 @@ jobs:
           # 如果选择了 SukiSU 且取消 SUSFS，则强制使用 miuix 分支
           if [ "$variant_input" = "SukiSU" ] && [ "${{ inputs.cancel_susfs }}" = "true" ]; then
             echo "BRANCH=-s miuix" >> $GITHUB_ENV
+          fi
+          if [ "$variant_input" = "RKSU" ] && [ "${{ inputs.cancel_susfs }}" = "true" ]; then
+            echo "BRANCH=-s main" >> $GITHUB_ENV
           fi
 
       - name: 添加 KernelSU
@@ -327,6 +331,9 @@ jobs:
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
             echo "添加 KernelSU SukiSU 版本..."
             curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash $BRANCH
+          elif [ "${{ inputs.kernelsu_variant }}" == "RKSU" ]; then
+            echo "添加 KernelSU RKSU 版本..."
+            curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash $BRANCH
           fi
       
       - name: SUKISU管理器信息
@@ -396,6 +403,9 @@ jobs:
 
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
             echo "无需为 SukiSU 应用 SUSFS 补丁..."
+            cd ./KernelSU
+          elif [ "${{ inputs.kernelsu_variant }}" == "RKSU" ]; then
+            echo "无需为 RKSU 应用 SUSFS 补丁..."
             cd ./KernelSU
           else
             echo "错误：未识别的 KernelSU 变体"
