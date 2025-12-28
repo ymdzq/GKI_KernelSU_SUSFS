@@ -17,6 +17,7 @@ on:
           - Next
           - MKSU
           - SukiSU
+          - RKSU
         default: SukiSU
       kernelsu_branch:
         description: "选择 ksu 分支"
@@ -144,6 +145,8 @@ jobs:
             BRANCH="builtin"
           elif [[ "${{ inputs.kernelsu_variant }}" == "Next" ]]; then
             BRANCH="dev"
+          elif [[ "${{ inputs.kernelsu_variant }}" == "RKSU" ]]; then
+            BRANCH="susfs-rksu-master"
           else
             echo "Error: Custom branch not provided for 'Other(其他/指定)'" >&2
             exit 1
@@ -170,6 +173,10 @@ jobs:
             echo "This is the SukiSU variant"
             REPO_URL="https://github.com/SukiSU-Ultra/SukiSU-Ultra.git"
             REPO_URL2="SukiSU-Ultra/SukiSU-Ultra"
+          elif [ "${{ inputs.kernelsu_variant }}" == "RKSU" ]; then
+            echo "This is the Rissu's variant"
+            REPO_URL="https://github.com/rsuntk/KernelSU.git"
+            REPO_URL2="rsuntk/KernelSU"
           else
             echo "Unknown variant"
           fi
@@ -254,6 +261,13 @@ jobs:
             echo "$RELEASE_NOTES" >> $GITHUB_ENV
             echo "SukiSU 管理器:" >> $GITHUB_ENV
             echo "-> https://github.com/SukiSU-Ultra/SukiSU-Ultra" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          elif [ "${{ inputs.kernelsu_variant }}" == "RKSU" ]; then
+            echo "This is the Rissu's variant"
+            echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+            echo "$RELEASE_NOTES" >> $GITHUB_ENV
+            echo "RKSU 管理器:" >> $GITHUB_ENV
+            echo "-> https://github.com/rsuntk/KernelSU" >> $GITHUB_ENV
             echo "EOF" >> $GITHUB_ENV
           else
             echo "Unknown variant"
