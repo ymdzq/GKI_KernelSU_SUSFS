@@ -304,9 +304,9 @@ jobs:
               ;;
           esac
 
-          # 如果选择了 SukiSU 且取消 SUSFS，则强制使用 main 分支
+          # 如果选择了 SukiSU 且取消 SUSFS，则强制使用 miuix 分支
           if [ "$variant_input" = "SukiSU" ] && [ "${{ inputs.cancel_susfs }}" = "true" ]; then
-            echo "BRANCH=-s main" >> $GITHUB_ENV
+            echo "BRANCH=-s miuix" >> $GITHUB_ENV
           fi
 
       - name: 添加 KernelSU
