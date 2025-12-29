@@ -96,22 +96,22 @@ jobs:
       REPO_NAME: ${{ github.event.repository.name }}
       SUS_VERSION: ''
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RELEASE_NAME: "GKI内核: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}(${{ needs.get_manager.outputs.ksuVer }})  & SUSFS ${{ needs.get_manager.outputs.susVer }}"
+      RELEASE_NAME: "GKI内核: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}(${{ needs.get_manager.outputs.ksuVer }}) ${{ !inputs.cancel_susfs && format(' & SUSFS {0}', needs.get_manager.outputs.susVer) || '' }}"
       RELEASE_NOTES: |
-        此处包含：**${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}**、SUSFS ${{ needs.get_manager.outputs.susVer }} ${{ inputs.use_zram && '、LZ4KD' || '' }}
+        此处包含：**${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}**${{ !inputs.cancel_susfs && format('、SUSFS {0}', needs.get_manager.outputs.susVer) || '' }}${{ inputs.use_zram && '、LZ4KD' || '' }}
 
         功能:
         -> ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}${{ inputs.kernelsu_variant == 'Official' && '原版' || '' }}${{ inputs.kernelsu_branch == 'Dev(开发)' && format('({0})', needs.get_manager.outputs.ksuVer) || '稳定版' }}
-        -> SUSFS ඞ ${{ needs.get_manager.outputs.susVer }}
+        ${{ !inputs.cancel_susfs && format('-> SUSFS ඞ {0}', needs.get_manager.outputs.susVer) || '' }}
         -> SUSFS Inline Hooks
-        ${{ inputs.kernelsu_variant != 'Official' && '-> Magic Mount 支持' || '-> OVERLAYFS 支持' }}
         -> BBG安全补丁 ${{ inputs.use_bbg && '支持' || '不支持' }}
         ${{ inputs.use_kpm && '-> KPM 支持' || '' }}
         -> **LZ4KD&ONEPLUS_LZ4K**  ${{ inputs.use_zram && '开启' || '未开启' }}
         -> lz4: v1.10.0 ${{ inputs.use_zram && '开启' || '未开启' }}
         
-        模块: 
+        ${{ !inputs.cancel_susfs && format('模块: 
         -> https://github.com/sidex15/ksu_module_susfs
+        ', '') || '' }}
         
     steps:
       # Checkout the code
@@ -192,6 +192,7 @@ jobs:
           echo "KernelSU URL: $KSU_URL"
 
       - name: 获取提交哈希值并生成提交 URL
+        if: ${{ !inputs.cancel_susfs }}
         run: |
           GITLAB_OWNER="simonpunk"
           GITLAB_REPO="susfs4ksu"
@@ -269,12 +270,12 @@ jobs:
           echo "" >> $GITHUB_ENV
           echo "提交的哈希值与链接(以下提交指的是,本次编译时,KSU或SUSFS所在的进度):" >> $GITHUB_ENV
           echo "- **KernelSU为${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}${{ inputs.kernelsu_branch == 'Dev(开发)' && format('({0})', needs.get_manager.outputs.ksuVer) || '稳定版' }}** (提交): [$KSU_REF]($KSU_URL)" >> $GITHUB_ENV
-          echo "- **SUSFS4KSU** (提交):" >> $GITHUB_ENV
-          echo "  - gki-android12-5.10: [$COMMIT_HASH_gki_android12_5_10]($COMMIT_URL_gki_android12_5_10)" >> $GITHUB_ENV
+          ${{ !inputs.cancel_susfs && format('echo "- **SUSFS4KSU** (提交):" >> $GITHUB_ENV', '') || '' }}
+          ${{ !inputs.cancel_susfs && format('echo "  - gki-android12-5.10: [$COMMIT_HASH_gki_android12_5_10]($COMMIT_URL_gki_android12_5_10)" >> $GITHUB_ENV', '') || '' }}
           echo "" >> $GITHUB_ENV
           echo "</details>" >> $GITHUB_ENV
           echo "" >> $GITHUB_ENV
-          echo "点击下方 **【Assets】** 展开资源,底部还包含最新 **KSU管理器、CI构建SUSFS模块** " >> $GITHUB_ENV
+          ${{ !inputs.cancel_susfs && 'echo "点击下方 **【Assets】** 展开资源,底部还包含最新 **KSU管理器、CI构建SUSFS模块** " >> $GITHUB_ENV' || 'echo "点击下方 **【Assets】** 展开资源,底部还包含最新 **KSU管理器** " >> $GITHUB_ENV' }}
           echo "EOF" >> $GITHUB_ENV
           
       # Get the Latest Tag from GitHub
@@ -331,7 +332,9 @@ jobs:
         run: |
             echo "Uploading KSU管理器"
             gh release upload ${{ env.NEW_TAG }} "./downloaded-artifacts/*Manager*/*"
+              if [ !inputs.cancel_susfs ]; then
             gh release upload ${{ env.NEW_TAG }} "./downloaded-artifacts/susfs-*/*"
+              fi
 
       # 上传内核产物
       - name: 动态上传发布资产
