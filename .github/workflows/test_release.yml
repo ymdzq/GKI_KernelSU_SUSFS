@@ -50,7 +50,7 @@ on:
         description: '是否开启KPM功能?'
         required: true
         type: boolean
-        default: true
+        default: false
       cancel_susfs:
         description: '取消susfs'
         required: true

@@ -100,7 +100,7 @@ jobs:
                 "version": "",
                 "use_zram": "true",
                 "use_bbg": "true",
-                "use_kpm": "true",
+                "use_kpm": "false",
                 "get_manager": "true"
               }
             }'
