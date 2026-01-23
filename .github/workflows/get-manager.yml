@@ -69,6 +69,9 @@ jobs:
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
             echo "This is the SukiSU variant"
             git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra.git KernelSU
+          elif [ "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]; then
+            echo "This is the ReSukiSU variant"
+            git clone https://github.com/ReSukiSU/ReSukiSU.git KernelSU
           elif [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
             echo "This is the Official"
             git clone https://github.com/tiann/KernelSU.git KernelSU
@@ -93,7 +96,7 @@ jobs:
             KSU_VERSION=$((40000 + KSU_GIT_VERSION - 2815))
           elif [ "${{ inputs.kernelsu_variant }}" == "Official" ] || [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
             KSU_VERSION=$((20000 + KSU_GIT_VERSION))
-          elif [ "${{ inputs.kernelsu_variant }}" == "Next" ] || [ "${{ inputs.kernelsu_variant }}" == "RKSU" ]; then
+          elif [ "${{ inputs.kernelsu_variant }}" == "Next" ] || [ "${{ inputs.kernelsu_variant }}" == "RKSU" ] || [ "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]; then
             KSU_VERSION=$((30000 + KSU_GIT_VERSION))
           fi
           echo $KSU_VERSION
@@ -120,6 +123,10 @@ jobs:
             echo "SukiSU..."
             REPO="SukiSU-Ultra/SukiSU-Ultra"
             KSUM="Manager"
+          elif [ "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]; then
+            echo "ReSukiSU..."
+            REPO="ReSukiSU/ReSukiSU"
+            KSUM="Spoofed-Manager-release"
           elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
             echo "MKSU..."
             REPO="5ec1cff/KernelSU"

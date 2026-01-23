@@ -17,6 +17,7 @@ on:
           - Next
           - MKSU
           - SukiSU
+          - ReSukiSU
           - RKSU
         default: SukiSU
       kernelsu_branch:
@@ -102,8 +103,8 @@ jobs:
 
         功能:
         -> ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}${{ inputs.kernelsu_variant == 'Official' && '原版' || '' }}${{ inputs.kernelsu_branch == 'Dev(开发)' && format('({0})', needs.get_manager.outputs.ksuVer) || '稳定版' }}
-        -> SUSFS ඞ ${{ needs.get_manager.outputs.susVer }} ${{ inputs.kernelsu_variant != 'SukiSU' && '-> 移除' || '' }}
-        ${{ inputs.kernelsu_variant != 'SukiSU' && '-> KPROBE Hooks' || '-> SUSFS Inline Hooks' }}
+        -> SUSFS ඞ ${{ needs.get_manager.outputs.susVer }} ${{ inputs.kernelsu_variant != 'SukiSU' && inputs.kernelsu_variant != 'ReSukiSU' && '-> 移除' || '' }}
+        ${{ inputs.kernelsu_variant != 'SukiSU' && inputs.kernelsu_variant != 'ReSukiSU' && '-> KPROBE Hooks' || '-> SUSFS Inline Hooks' }}
         -> BBG安全补丁 ${{ inputs.use_bbg && '支持' || '不支持' }}
         ${{ inputs.use_kpm && '-> KPM 支持' || '' }} | 若不支持可[手动修补](https://github.com/zzh20188/GKI_KernelSU_SUSFS/issues/132)
         -> **LZ4KD&ONEPLUS_LZ4K**  ${{ inputs.use_zram && '开启' || '未开启' }}
@@ -119,7 +120,7 @@ jobs:
         Features:
         -> ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }}${{ inputs.kernelsu_variant }}${{ inputs.kernelsu_variant == 'Official' && ' (Official)' || '' }}${{ inputs.kernelsu_branch == 'Dev(开发)' && format('({0})', needs.get_manager.outputs.ksuVer) || ' (Stable)' }}
         -> SUSFS ඞ ${{ needs.get_manager.outputs.susVer }}
-        ${{ inputs.kernelsu_variant != 'SukiSU' && '-> KPROBE Hooks' || '-> SUSFS Inline Hooks' }}
+        ${{ inputs.kernelsu_variant != 'SukiSU' && inputs.kernelsu_variant != 'ReSukiSU' && '-> KPROBE Hooks' || '-> SUSFS Inline Hooks' }}
         ${{ inputs.kernelsu_variant != 'Official' && '-> Magic Mount Support' || '-> OVERLAYFS Support' }}
         -> BBG Security Patch: ${{ inputs.use_bbg && 'Supported' || 'Not Supported' }}
         ${{ inputs.use_kpm && '-> KPM Support' || '' }} | If not supported, [Manual Patching](https://github.com/zzh20188/GKI_KernelSU_SUSFS/issues/132) is available
@@ -136,12 +137,12 @@ jobs:
         uses: actions/checkout@v3
 
       - name: 确定分支为 KernelSU-${{ inputs.kernelsu_variant }}
-        if: ${{ inputs.kernelsu_branch == 'Dev(开发)' || inputs.kernelsu_variant == 'MKSU' || inputs.kernelsu_variant == 'SukiSU'  }}
+        if: ${{ inputs.kernelsu_branch == 'Dev(开发)' || inputs.kernelsu_variant == 'MKSU' || inputs.kernelsu_variant == 'SukiSU' || inputs.kernelsu_variant == 'ReSukiSU' }}
         run: |
           # Determine the branch based on user input
           if [[ "${{ inputs.kernelsu_variant }}" == "Official" || "${{ inputs.kernelsu_variant }}" == "MKSU" ]]; then
             BRANCH="main"
-          elif [[ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]]; then
+          elif [[ "${{ inputs.kernelsu_variant }}" == "SukiSU" || "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]]; then
             BRANCH="builtin"
           elif [[ "${{ inputs.kernelsu_variant }}" == "Next" ]]; then
             BRANCH="dev"
@@ -173,6 +174,10 @@ jobs:
             echo "This is the SukiSU variant"
             REPO_URL="https://github.com/SukiSU-Ultra/SukiSU-Ultra.git"
             REPO_URL2="SukiSU-Ultra/SukiSU-Ultra"
+          elif [ "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]; then
+            echo "This is the ReSukiSU variant"
+            REPO_URL="https://github.com/ReSukiSU/ReSukiSU.git"
+            REPO_URL2="ReSukiSU/ReSukiSU"
           elif [ "${{ inputs.kernelsu_variant }}" == "RKSU" ]; then
             echo "This is the Rissu's variant"
             REPO_URL="https://github.com/rsuntk/KernelSU.git"
@@ -191,7 +196,7 @@ jobs:
             KSU_REF=$TAG
             KSU_URL="https://github.com/$REPO_URL2/releases/tag/$TAG"
 
-          elif [[ "${{ inputs.kernelsu_branch }}" == "Dev(开发)" || "${{ inputs.kernelsu_variant }}" == "MKSU" || "${{ inputs.kernelsu_variant }}" == "SukiSU" ]]; then
+          elif [[ "${{ inputs.kernelsu_branch }}" == "Dev(开发)" || "${{ inputs.kernelsu_variant }}" == "MKSU" || "${{ inputs.kernelsu_variant }}" == "SukiSU" || "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]]; then
             # Fetch the latest commit from "next" branch
             COMMIT_HASH=$(git ls-remote $REPO_URL refs/heads/$KSU_BRANCH | awk '{ print $1 }')
             if [[ -z "$COMMIT_HASH" ]]; then
@@ -262,6 +267,13 @@ jobs:
             echo "$RELEASE_NOTES" >> $GITHUB_ENV
             echo "SukiSU 管理器:" >> $GITHUB_ENV
             echo "-> https://github.com/SukiSU-Ultra/SukiSU-Ultra" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          elif [ "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]; then
+            echo "This is the ReSukiSU variant"
+            echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+            echo "$RELEASE_NOTES" >> $GITHUB_ENV
+            echo "ReSukiSU 管理器:" >> $GITHUB_ENV
+            echo "-> https://github.com/ReSukiSU/ReSukiSU" >> $GITHUB_ENV
             echo "EOF" >> $GITHUB_ENV
           elif [ "${{ inputs.kernelsu_variant }}" == "RKSU" ]; then
             echo "This is the Rissu's variant"
