@@ -17,6 +17,7 @@ on:
           - Next
           - MKSU
           - SukiSU
+          - ReSukiSU
           - RKSU
         default: SukiSU
       kernelsu_branch:

@@ -203,7 +203,7 @@ jobs:
           git clone https://github.com/WildKernels/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
           rm -rf AnyKernel3/.git
 
-          if [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
+          if [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ] || [ "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]; then
             git clone https://github.com/ShirkNeko/susfs4ksu.git -b "$SUSFS_BRANCH"
           else
             git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "$SUSFS_BRANCH"
@@ -321,6 +321,9 @@ jobs:
                 "SukiSU")
                   echo "BRANCH=-s builtin" >> $GITHUB_ENV
                   ;;
+                "ReSukiSU")
+                  echo "BRANCH=-s builtin" >> $GITHUB_ENV
+                  ;;
                 *)
                   echo "BRANCH=-" >> $GITHUB_ENV
                   ;;
@@ -331,6 +334,7 @@ jobs:
                 "Official" | "MKSU") echo "BRANCH=-s main" >> $GITHUB_ENV ;;
                 "Next")              echo "BRANCH=-s dev" >> $GITHUB_ENV ;;
                 "SukiSU")           echo "BRANCH=-s builtin" >> $GITHUB_ENV ;;
+                "ReSukiSU")           echo "BRANCH=-s builtin" >> $GITHUB_ENV ;;
                 "RKSU")           echo "BRANCH=-s susfs-rksu-master" >> $GITHUB_ENV ;;
                 *) 
                   echo "错误：未定义开发分支的变体 '$variant_input'" >&2
@@ -347,6 +351,9 @@ jobs:
           # 如果选择了 SukiSU 且取消 SUSFS，则强制使用 miuix 分支
           if [ "$variant_input" = "SukiSU" ] && [ "${{ inputs.cancel_susfs }}" = "true" ]; then
             echo "BRANCH=-s miuix" >> $GITHUB_ENV
+          fi
+          if [ "$variant_input" = "ReSukiSU" ] && [ "${{ inputs.cancel_susfs }}" = "true" ]; then
+            echo "BRANCH=-s new-manager" >> $GITHUB_ENV
           fi
           if [ "$variant_input" = "RKSU" ] && [ "${{ inputs.cancel_susfs }}" = "true" ]; then
             echo "BRANCH=-s main" >> $GITHUB_ENV
@@ -369,6 +376,9 @@ jobs:
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
             echo "添加 KernelSU SukiSU 版本..."
             curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash $BRANCH
+          elif [ "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]; then
+            echo "添加 KernelSU ReSukiSU 版本..."
+            curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash $BRANCH
           elif [ "${{ inputs.kernelsu_variant }}" == "RKSU" ]; then
             echo "添加 KernelSU RKSU 版本..."
             curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash $BRANCH
@@ -441,6 +451,9 @@ jobs:
 
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
             echo "无需为 SukiSU 应用 SUSFS 补丁..."
+            cd ./KernelSU
+          elif [ "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]; then
+            echo "无需为 ReSukiSU 应用 SUSFS 补丁..."
             cd ./KernelSU
           elif [ "${{ inputs.kernelsu_variant }}" == "RKSU" ]; then
             echo "无需为 RKSU 应用 SUSFS 补丁..."
@@ -672,7 +685,7 @@ jobs:
           # Add KSU configuration settings
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
 
-          if [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
+          if [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ] || [ "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]; then
             echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
           fi
 
@@ -824,7 +837,7 @@ jobs:
 
 
       - name: 修补 Image 文件 (仅限 SukiSU)
-        if: ${{ inputs.use_kpm && inputs.kernelsu_variant == 'SukiSU' }}
+        if: ${{ inputs.use_kpm && inputs.kernelsu_variant == 'SukiSU' || inputs.kernelsu_variant == 'ReSukiSU' }}
         run: |
           target_path=""
 

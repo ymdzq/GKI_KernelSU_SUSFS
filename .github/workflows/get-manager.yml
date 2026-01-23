@@ -69,6 +69,9 @@ jobs:
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
             echo "This is the SukiSU variant"
             git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra.git KernelSU
+          elif [ "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]; then
+            echo "This is the ReSukiSU variant"
+            git clone https://github.com/ReSukiSU/ReSukiSU.git KernelSU
           elif [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
             echo "This is the Official"
             git clone https://github.com/tiann/KernelSU.git KernelSU
@@ -95,6 +98,8 @@ jobs:
             KSU_VERSION=$((20000 + KSU_GIT_VERSION))
           elif [ "${{ inputs.kernelsu_variant }}" == "Next" ] || [ "${{ inputs.kernelsu_variant }}" == "RKSU" ]; then
             KSU_VERSION=$((30000 + KSU_GIT_VERSION))
+          elif [ "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]; then
+            KSU_VERSION=$((30000 + KSU_GIT_VERSION + 700))
           fi
           echo $KSU_VERSION
           echo "KSU_VERSION=$KSU_VERSION" >> $GITHUB_ENV
@@ -120,6 +125,10 @@ jobs:
             echo "SukiSU..."
             REPO="SukiSU-Ultra/SukiSU-Ultra"
             KSUM="Manager"
+          elif [ "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]; then
+            echo "ReSukiSU..."
+            REPO="ReSukiSU/ReSukiSU"
+            KSUM="Spoofed-Manager-release"
           elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
             echo "MKSU..."
             REPO="5ec1cff/KernelSU"
@@ -180,6 +189,9 @@ jobs:
           echo "Manager 文件已下载为：${{ inputs.kernelsu_variant }}-管理器(${{ env.KSU_VERSION }}).zip"
           unzip *.zip
           rm -rf *.zip
+          if [ "${{ inputs.kernelsu_variant }}" == "ReSukiSU" ]; then
+          mv apk/release/*.apk .
+          fi
 
       - name: 添加 SUSFS 模块
         id: add_SUSFS
